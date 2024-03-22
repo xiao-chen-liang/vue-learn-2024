@@ -1,12 +1,58 @@
 <template>
   <nav>
     <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+    <router-link :to="{name: 'about'}">About</router-link> |
+<!--    <router-link to="/jobs">Jobs</router-link>-->
+    <router-link :to="{name: 'jobs'}">Jobs</router-link>
   </nav>
+
+<!--  create three button to navigate redirect, backward and forward-->
+<!--  The function invoked by the button is defined in the script tag below.-->
+<div id="my-button">
+  <button @click="redirect">Redirect</button>
+  <button @click="back">Back</button>
+  <button @click="forward">Forward</button>
+</div>
+
+
+
   <router-view/>
 </template>
 
+
+<script>
+
+export default {
+  name: 'App',
+  methods: {
+    redirect(){
+      this.$router.push({name: 'home'})
+    },
+    back(){
+      this.$router.go(-1)
+    },
+    forward(){
+      this.$router.go(1)
+    }
+  }
+}
+
+</script>
+
+
 <style>
+/* some beautiful styles for the buttons */
+#my-button button {
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -17,6 +63,7 @@
 
 nav {
   padding: 30px;
+  //background: red;
 }
 
 nav a {
@@ -27,4 +74,6 @@ nav a {
 nav a.router-link-exact-active {
   color: #42b983;
 }
+
+
 </style>
