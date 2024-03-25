@@ -4,12 +4,16 @@ import AboutView from '../views/AboutView.vue'
 import JobsView from "../views/jobs/JobsView.vue";
 import JobDetailsView from "../views/jobs/JobDetails.vue";
 import NotFoundView from "../views/NotFound.vue";
+import ReportCard from "../views/ReportCard.vue";
+import ScoreItem from "../views/ScoreItems.vue";
+
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    // component: HomeView
+    component: ReportCard
   },
   {
     path: '/about',
@@ -35,6 +39,12 @@ const routes = [
     path: '/all-jobs',
     redirect: '/jobs'
   },
+
+    {
+    path: '/score-item',
+    name: 'score-item',
+    component: ScoreItem
+    },
     // catch all 404
   {
     path: '/:catchAll(.*)',
