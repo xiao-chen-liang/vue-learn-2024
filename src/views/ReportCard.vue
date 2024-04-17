@@ -6,6 +6,8 @@
       :on-preview="handlePreview"
       :on-remove="handleRemove"
       :before-upload="beforeUpload"
+      :on-success="handleSuccess"
+      :on-error="handleError"
       :file-list="fileList"
       multiple>
     <i class="el-icon-upload"></i>
@@ -39,6 +41,14 @@ export default {
         this.$message.error('File size should be less than 500KB');
       }
       return isPDF && isLt500K;
+    },
+    handleSuccess(response, file, fileList) {
+      console.log('Upload successful:', response);
+      this.$message.success(file.name + ' uploaded successfully');
+    },
+    handleError(err, file, fileList) {
+      console.error('Upload error:', err);
+      this.$message.error(file.name + ' Upload failed because of ' + err.message);
     }
   }
 }
