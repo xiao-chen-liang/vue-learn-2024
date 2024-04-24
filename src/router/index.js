@@ -6,6 +6,7 @@ import JobDetailsView from "../views/jobs/JobDetails.vue";
 import NotFoundView from "../views/NotFound.vue";
 import ReportCard from "../views/ReportCard.vue";
 import ScoreItem from "../views/ScoreItems.vue";
+import Individual from "../views/individual.vue";
 
 
 const routes = [
@@ -50,6 +51,11 @@ const routes = [
     path: '/:catchAll(.*)',
     name: 'not-found',
     component: NotFoundView
+  },
+  {
+    path: '/individual',
+    name: 'individual',
+    component: Individual
   }
 ]
 

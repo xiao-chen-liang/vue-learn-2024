@@ -31,7 +31,7 @@
                 index="3"
                 style="font-size: 20px; display: flex; justify-content: center; align-items: center;"
             >
-              Info
+              个人成绩
             </el-menu-item>
             <el-menu-item
                 index="4"
@@ -79,7 +79,7 @@ export default {
       } else if (key === '2') {
         this.$router.push({name: 'score-item'})
       } else if (key === '3') {
-        this.$router.push({name: 'info'})
+        this.$router.push({name: 'individual'})
       } else if (key === '4') {
         this.$router.push({name: 'orders'})
       } else if (key === '5') {
