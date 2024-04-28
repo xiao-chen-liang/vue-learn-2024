@@ -79,7 +79,7 @@ export default {
       } else if (key === '2') {
         this.$router.push({name: 'score-item'})
       } else if (key === '3') {
-        this.$router.push({name: 'individual'})
+        this.$router.push({name: 'score'})
       } else if (key === '4') {
         this.$router.push({name: 'orders'})
       } else if (key === '5') {
@@ -98,7 +98,7 @@ export default {
         case 'score-item':
           this.activeIndex = '2';
           break;
-        case 'info':
+        case 'score':
           this.activeIndex = '3';
           break;
         case 'orders':

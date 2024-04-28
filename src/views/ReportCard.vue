@@ -44,7 +44,7 @@ export default {
     },
     handleSuccess(response, file, fileList) {
       console.log('Upload successful:', response);
-      this.$message.success(file.name + ' uploaded successfully');
+      this.$message.success(file.name + response);
     },
     handleError(err, file, fileList) {
       console.error('Upload error:', err);
