@@ -68,7 +68,6 @@
               </template>
 
             </el-table-column>
-            s
 
           </el-table>
         </div>
@@ -137,6 +136,13 @@ export default {
 
       // Fetch data based on the default selected value
       await this.fetchReportData(defaultGrade, defaultCollege, defaultMajor); // Await the data fetch
+
+      // Destructure the selectedValues array into grade, college, and major
+      const [grade, college, major] = this.selectedValue;
+
+      const url = `http://localhost:5000/get_rule_data/${grade}/${college}`;
+      const response = await axios.get(url);
+      this.rule = response.data;
     }
   },
   methods: {
@@ -207,6 +213,12 @@ export default {
         // Update the 'comprehensive' field of the row with the inputValue
         row.comprehensive = row.inputValue;
 
+        // Check if the comprehensive value was changed
+        if (row.comprehensive !== this.originalComprehensive) {
+          // Display a success message indicating the change
+          this.$message.success(`${row.name}'s comprehensive changed to ${row.inputValue}`);
+        }
+
         // Send the updated row data to the backend API
         const updateUrl = `http://localhost:5000/update_comprehensive`;
         const response = await axios.put(updateUrl, row);
@@ -223,6 +235,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 /* Your scoped styles here */
 .input_box {

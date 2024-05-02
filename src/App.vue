@@ -37,7 +37,7 @@
                 index="4"
                 style="font-size: 20px; display: flex; justify-content: center; align-items: center;"
             >
-              Orders
+              排名
             </el-menu-item>
             <el-menu-item
                 index="5"
@@ -73,42 +73,45 @@ export default {
   },
   methods: {
     handleSelect(key, keyPath) {
-      console.log(key, keyPath);
-      if (key === '1') {
-        this.$router.push({name: 'home'})
-      } else if (key === '2') {
-        this.$router.push({name: 'score-item'})
-      } else if (key === '3') {
-        this.$router.push({name: 'score'})
-      } else if (key === '4') {
-        this.$router.push({name: 'orders'})
-      } else if (key === '5') {
-        this.$router.push({name: 'orders'})
-      } else if (key === '6') {
-        this.$router.push({name: 'orders'})
-      }
-    },
+  console.log(key, keyPath);
+  if (key === '1') {
+    this.$router.push({name: 'home'})
+  } else if (key === '2') {
+    this.$router.push({name: 'score-item'})
+  } else if (key === '3') {
+    this.$router.push({name: 'score'})
+  } else if (key === '4') {
+    this.$router.push({name: 'ranking'})
+  } else if (key === '5') {
+    this.$router.push({name: 'orders'})
+  } else if (key === '6') {
+    this.$router.push({name: 'orders'})
+  }
+},
 
-    updateActiveIndex(route) {
-      // Extract the index from the route's name or path
-      switch (route.name) {
-        case 'home':
-          this.activeIndex = '1';
-          break;
-        case 'score-item':
-          this.activeIndex = '2';
-          break;
-        case 'score':
-          this.activeIndex = '3';
-          break;
-        case 'orders':
-          this.activeIndex = '4';
-          break;
-          // Handle other routes if needed
-        default:
-          this.activeIndex = '1'; // Default to the first item
-      }
-    },
+   updateActiveIndex(route) {
+  // Extract the index from the route's name or path
+  switch (route.name) {
+    case 'home':
+      this.activeIndex = '1';
+      break;
+    case 'score-item':
+      this.activeIndex = '2';
+      break;
+    case 'score':
+      this.activeIndex = '3';
+      break;
+    case 'ranking': // Add this case
+      this.activeIndex = '4';
+      break;
+    case 'orders':
+      this.activeIndex = '5';
+      break;
+    // Handle other routes if needed
+    default:
+      this.activeIndex = '1'; // Default to the first item
+  }
+},
     scrollToActiveItem() {
       // Scroll the menu to the active item if needed
       const el = document.querySelector(`.el-menu-item[index="${this.activeIndex}"]`);

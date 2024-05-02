@@ -7,7 +7,7 @@ import NotFoundView from "../views/NotFound.vue";
 import ReportCard from "../views/ReportCard.vue";
 import ScoreItem from "../views/ScoreItems.vue";
 import Score from "../views/score.vue"
-
+import Ranking from '../views/Ranking.vue' // Import the Ranking view
 
 const routes = [
   {
@@ -56,7 +56,12 @@ const routes = [
     path: '/score',
     name: 'score',
     component: Score
-  }
+  },
+  {
+    path: '/ranking',
+    name: 'ranking',
+    component: Ranking
+  },
 ]
 
 const router = createRouter({
