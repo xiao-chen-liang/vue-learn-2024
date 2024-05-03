@@ -78,6 +78,16 @@
 
         </div>
 
+        <el-row>
+          <el-col :span="10">
+            <!--                make the el-button to located on the right of its container-->
+
+            <el-button type="primary" @click="downloadTableAsExcel" style="float: right; margin: 10px">
+              Download Table
+            </el-button>
+          </el-col>
+        </el-row>
+
       </el-col>
     </el-row>
   </div>
@@ -86,6 +96,7 @@
 <script>
 import {ElTable, ElTableColumn, ElAlert, ElInputNumber} from 'element-plus';
 import axios from 'axios';
+import XLSX from 'xlsx';
 
 export default {
   components: {
@@ -182,7 +193,7 @@ export default {
         }
         await this.submitForm();
 
-         const [grade, college] = this.selectedValue;
+        const [grade, college] = this.selectedValue;
 
         try {
           const [reportResponse] = await Promise.all([
@@ -210,6 +221,30 @@ export default {
           type: 'error'
         });
       }
+    },
+
+    downloadTableAsExcel() {
+      axios({
+        url: 'http://localhost:5000/download',
+        method: 'POST',
+        responseType: 'blob', // Important
+        data: {
+          reportData: this.reportData
+        }
+      })
+          .then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'output.xlsx'); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          })
+          .catch((error) => {
+            console.error('Error downloading the file:', error);
+          });
     },
 
     async getOptions() {
@@ -257,22 +292,29 @@ export default {
     sortReportDataBySum() {
       const empty_row = null;
       let qualified = 0;
+      const tempData = [];
+      let temp_count = 0;
+      let allocation_already = 0;
+
       if (this.reportData && this.reportData.length > 0) {
         this.reportData.sort((a, b) => {
           return a.sum - b.sum; // Sort by 'Sum' column
         });
 
-        const tempData = [];
         for (let item of this.allocation) {
           let count = item.quantity;
+          allocation_already += count;
           for (let i = this.reportData.length - 1; i >= 0 && count > 0; i--) {
             if (item.major === this.reportData[i].major) {
               tempData.unshift(this.reportData.splice(i, 1)[0]); // Move matched item to tempData
               qualified++;
               count--;
+              temp_count++;
             }
           }
+          tempData.unshift({"major": this.rule.grade + item.major + "  分配名额：" + item.quantity + "  合格人数：" + temp_count});
           tempData.unshift(empty_row);
+          temp_count = 0;
         }
 
         let count = this.rule.totality - qualified;
@@ -280,12 +322,19 @@ export default {
           tempData.unshift(this.reportData.splice(i, 1)[0]); // Move unmatched item to tempData
           count--;
           console.log('count:', count);
+          temp_count++;
         }
+        tempData.unshift({"major": this.rule.grade + this.rule.college+ " 总名额：" + this.rule.totality + "  剩余名额：" + (this.rule.totality - allocation_already) + "  合格人数：" + temp_count});
         tempData.unshift(empty_row);
+        temp_count = 0;
 
         for (let i = this.reportData.length - 1; i >= 0; i--) {
           tempData.unshift(this.reportData.splice(i, 1)[0]);
+          temp_count++;
         }
+        tempData.unshift({"major": this.rule.grade + this.rule.college + " 不合格：" + temp_count});
+        tempData.unshift(empty_row);
+
         this.reportData = tempData.reverse(); // Reverse the order of tempData
       }
     },
