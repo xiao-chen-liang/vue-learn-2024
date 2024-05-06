@@ -6,7 +6,7 @@
     :file-list="fileList"
     multiple>
     <i class="el-icon-upload"></i>
-    <div class="el-upload__text">Drop file here or <em>click to upload</em></div>
+    <div class="el-upload__text">拖动文件或<em>点击这里</em></div>
   </el-upload>
 
 
@@ -26,17 +26,17 @@
     <el-table-column type="index"></el-table-column>
     <el-table-column
       prop="filename"
-      label="Filename"
+      label="文件名称"
       width="180">
     </el-table-column>
     <el-table-column
       prop="message"
-      label="Message">
+      label="信息">
     </el-table-column>
     <el-table-column
       sortable
       prop="status"
-      label="Status"
+      label="状态"
       width="100">
     </el-table-column>
   </el-table>
@@ -70,9 +70,9 @@ export default {
     }
 
     // Determine row class based on 'status' property
-    if (row.status === 'success') {
+    if (row.status === '成功') {
       return 'blue-row'; // Apply 'blue-row' class for success status
-    } else if (row.status === 'error') {
+    } else if (row.status === '失败') {
       return 'red-row'; // Apply 'red-row' class for error status
     }
 
@@ -83,14 +83,14 @@ export default {
       const isLt500K = file.size / 1024 < 500;
 
       if (!isPDF) {
-        this.$message.error('Please upload PDF files only');
-        const mes = {count: this.i++, filename: file.name, message: 'Please upload PDF files only', status: "error"};
+        this.$message.error(file.name + ': 请上传PDF格式成绩单');
+        const mes = {count: this.i++, filename: file.name, message: '请上传PDF格式成绩单', status: "失败"};
         this.tableData.push(mes);
         return false;
       }
       if (!isLt500K) {
-        this.$message.error('File size should be less than 500KB');
-        const mes = {count: this.i++, filename: file.name, message: 'File size should be less than 500KB', status: "error"};
+        this.$message.error(file.name + ': 文件大于500KB');
+        const mes = {count: this.i++, filename: file.name, message: '文件大于500KB', status: "失败"};
         this.tableData.push(mes);
         return false;
       }
@@ -121,8 +121,8 @@ export default {
           });
 
           // Display success message for the uploaded file
-          this.$message.success(`${file.name} uploaded successfully`);
-          const mes = {count: this.i++, filename: file.name, message: response.data, status: "success"};
+          this.$message.success(`${file.name} ${response.data}`);
+          const mes = {count: this.i++, filename: file.name, message: response.data, status: "成功"};
           this.tableData.push(mes);
 
           // Remove the uploaded file from fileList
@@ -137,7 +137,7 @@ export default {
               count: this.i++,
               filename: file.name,
               message: error.response.data.error,
-              status: "error"
+              status: "失败"
             };
             this.tableData.push(mes);
           } else {

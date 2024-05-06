@@ -4,7 +4,7 @@
       <el-col :span="8">
         <div>
           <el-cascader :options="options" @change="handleCascaderChange" v-model="selectedValue"
-                       size="large"></el-cascader>
+                       size="large" clearable></el-cascader>
         </div>
       </el-col>
       <el-col :span="16">
@@ -28,7 +28,7 @@
             <!--            </el-col>-->
           </el-row>
 
-          <el-row>
+          <el-row v-if="rule">
             <el-col :span="10" class="input-column">
               <el-form-item :label="getSelectedCollegeLabel()" prop="totality">
                 <!-- Use el-input-number for totality input -->
@@ -45,22 +45,21 @@
             <el-col :span="10">
               <!--                make the el-button to located on the right of its container-->
 
-              <el-button type="primary" :disabled="!validateSumOfQuantities()" @click="submitAll" style="float: right">
-                Submit All
+              <el-button type="primary" v-if="rule" :disabled="!validateSumOfQuantities()" @click="submitAll" style="float: right">
+                提交
               </el-button>
             </el-col>
           </el-row>
         </el-form>
 
         <!-- Display error message with bottom margin -->
-        <el-row v-if="allocation && totality && !validateSumOfQuantities()">
+        <el-row v-if="rule && !validateSumOfQuantities()">
           <el-col :span="24">
             <el-alert
-                title="invalid input"
+                title="无效输入"
                 type="error"
                 show-icon
                 closable
-                @close="clearErrorMessage"
                 class="error-alert"
             />
           </el-col>
@@ -68,13 +67,13 @@
 
         <div class="grid-content bg-purple" id="report_table">
 
-          <el-table :data="reportData" v-loading="reportData === null" class="centered-table" :span-method="objectSpanMethod" :row-class-name="rowClassName">
-  <el-table-column prop="major" label="Major" align="center"></el-table-column>
-  <el-table-column prop="name" label="Name" align="center"></el-table-column>
-  <el-table-column prop="sn" label="SN" align="center"></el-table-column>
+          <el-table :data="reportData" class="centered-table" :span-method="objectSpanMethod" :row-class-name="rowClassName">
+  <el-table-column prop="major" label="专业" align="center"></el-table-column>
+  <el-table-column prop="name" label="姓名" align="center"></el-table-column>
+  <el-table-column prop="sn" label="学号" align="center"></el-table-column>
   <el-table-column prop="score" :label="scoreLabel" align="center"></el-table-column>
   <el-table-column prop="comprehensive" :label="comprehensiveLabel" align="center"></el-table-column>
-  <el-table-column prop="sum" label="Sum" align="center"></el-table-column>
+  <el-table-column prop="sum" label="总成绩" align="center"></el-table-column>
 </el-table>
 
         </div>
@@ -83,8 +82,8 @@
           <el-col :span="10">
             <!--                make the el-button to located on the right of its container-->
 
-            <el-button type="primary" @click="downloadTableAsExcel" style="float: right; margin: 10px">
-              Download Table
+            <el-button v-if="rule" type="primary" @click="downloadTableAsExcel" style="float: right; margin: 10px">
+              下载表格
             </el-button>
           </el-col>
         </el-row>
@@ -123,23 +122,23 @@ export default {
   computed: {
     selectedValueHeadline() {
       if (!this.selectedValue || this.selectedValue.length === 0) {
-        return 'No selection';
+        return '未选择';
       } else {
-        return 'Selected value: ' + this.selectedValue.join(' > ');
+        return this.selectedValue.join(' > ');
       }
     },
     scoreLabel() {
       if (this.rule && this.rule.score !== null) {
-        return 'score ' + (this.rule.score * 100).toFixed(2) + '%';
+        return '智育成绩 ' + (this.rule.score * 100).toFixed(2) + '%';
       } else {
-        return 'score';
+        return '智育成绩';
       }
     },
     comprehensiveLabel() {
       if (this.rule && this.rule.comprehensive !== null) {
-        return 'comprehensive ' + (this.rule.comprehensive * 100).toFixed(2) + '%';
+        return '综合素质 ' + (this.rule.comprehensive * 100).toFixed(2) + '%';
       } else {
-        return 'comprehensive';
+        return '综合素质';
       }
     }
   },
@@ -240,7 +239,7 @@ export default {
         }
 
         this.$message({
-          message: 'Data submitted successfully',
+          message: '上传成功',
           type: 'success'
         });
       } catch (error) {
@@ -344,7 +343,7 @@ export default {
               temp_count++;
             }
           }
-          tempData.unshift({"major": this.rule.grade + item.major + "  分配名额：" + item.quantity + "  合格人数：" + temp_count});
+          tempData.unshift({"major": this.rule.grade + " " + this.rule.college + " " + item.major + "  分配名额：" + item.quantity + "  合格人数：" + temp_count});
 
           temp_count = 0;
         }
@@ -357,7 +356,7 @@ export default {
           console.log('count:', count);
           temp_count++;
         }
-        tempData.unshift({"major": this.rule.grade + this.rule.college+ " 总名额：" + this.rule.totality + "  剩余名额：" + (this.rule.totality - allocation_already) + "  合格人数：" + temp_count});
+        tempData.unshift({"major": this.rule.grade + " " + this.rule.college+ " 总名额：" + this.rule.totality + "  剩余名额：" + (this.rule.totality - allocation_already) + "  合格人数：" + temp_count});
 
         temp_count = 0;
         tempData.unshift(empty_row);
@@ -365,7 +364,7 @@ export default {
           tempData.unshift(this.reportData.splice(i, 1)[0]);
           temp_count++;
         }
-        tempData.unshift({"major": this.rule.grade + this.rule.college + " 不合格：" + temp_count});
+        tempData.unshift({"major": this.rule.grade + " " + this.rule.college + " 不合格：" + temp_count});
 
 
         this.reportData = tempData.reverse(); // Reverse the order of tempData

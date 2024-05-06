@@ -13,55 +13,55 @@
         </div>
         <div class="grid-content bg-purple">
           <el-form :model="rule" ref="ruleForm" :rules="rules" label-width="120px">
-            <el-form-item label="PE">
-              <el-radio-group v-model="rule.pe">
-                <el-radio :label="1">Included</el-radio>
-                <el-radio :label="0">Not Included</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="Policy">
-              <el-radio-group v-model="rule.policy">
-                <el-radio :label="1">Included</el-radio>
-                <el-radio :label="0">Not Included</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="Public">
+            <el-form-item label="公选">
               <el-radio-group v-model="rule.public">
-                <el-radio :label="1">Included</el-radio>
-                <el-radio :label="0">Not Included</el-radio>
+                <el-radio :label="1">包含</el-radio>
+                <el-radio :label="0">不包含</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="Skill">
-              <el-radio-group v-model="rule.skill">
-                <el-radio :label="1">Included</el-radio>
-                <el-radio :label="0">Not Included</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="Specialized">
+            <el-form-item label="选修">
               <el-radio-group v-model="rule.specialized">
-                <el-radio :label="1">Included</el-radio>
-                <el-radio :label="0">Not Included</el-radio>
+                <el-radio :label="1">包含</el-radio>
+                <el-radio :label="0">不包含</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="Theory">
+            <el-form-item label="体育">
+              <el-radio-group v-model="rule.pe">
+                <el-radio :label="1">包含</el-radio>
+                <el-radio :label="0">不包含</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="形式与政策">
+              <el-radio-group v-model="rule.policy">
+                <el-radio :label="1">包含</el-radio>
+                <el-radio :label="0">不包含</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="军事技能">
+              <el-radio-group v-model="rule.skill">
+                <el-radio :label="1">包含</el-radio>
+                <el-radio :label="0">不包含</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="军事理论">
               <el-radio-group v-model="rule.theory">
-                <el-radio :label="1">Included</el-radio>
-                <el-radio :label="0">Not Included</el-radio>
+                <el-radio :label="1">包含</el-radio>
+                <el-radio :label="0">不包含</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="Score">
+            <el-form-item label="智育成绩权重">
               <el-input v-model="rule.score" placeholder="Enter score" type="number" :step="0.01" class="input_box"
                         :max="1" :min="0"></el-input>
             </el-form-item>
-            <el-form-item label="Comprehensive">
+            <el-form-item label="综合素质权重">
               <el-input v-model="rule.comprehensive" placeholder="Enter comprehensive" type="number" :step="0.01"
                         class="input_box" :max="1" :min="0"></el-input>
             </el-form-item>
 
 
             <el-form-item>
-              <el-button type="primary" @click="submitForm('ruleForm')" :disabled="isSubmitDisabled">Submit</el-button>
-              <el-button @click="resetForm('ruleForm')">Reset</el-button>
+              <el-button type="primary" @click="submitForm('ruleForm')" :disabled="isSubmitDisabled">提交</el-button>
+              <el-button @click="resetForm('ruleForm')">重置</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -102,9 +102,9 @@ export default {
   computed: {
     selectedValueHeadline() {
       if (!this.selectedValue || this.selectedValue.length === 0) {
-        return 'No selection';
+        return '未选择';
       } else {
-        return 'Selected value: ' + this.selectedValue.join(' > ');
+        return this.selectedValue.join(' > ');
       }
     },
     isSubmitDisabled() {
@@ -166,7 +166,7 @@ export default {
               axios.post('http://localhost:5000/update_rule_data', this.rule)
                 .then(response => {
                   console.log('Server response:', response.data);
-                  this.$message.success(response.data);
+                  this.$message.success("提交成功");
                 })
                 .catch(error => {
                   console.error('Error updating rule data:', error);
@@ -174,13 +174,13 @@ export default {
                 });
               this.originalRule = { ...this.rule };
             } else {
-              this.$message.error('Sum of score and comprehensive must equal 1');
+              this.$message.error('权重和需为1');
             }
           } else {
-            this.$message.error('Score and comprehensive must be valid numbers');
+            this.$message.error('请输入有效值');
           }
         } else {
-          this.$message.error('Validation failed. Please fill in all required fields.');
+          this.$message.error('请输入有效值');
           return false;
         }
       });

@@ -55,7 +55,7 @@ export default {
   data() {
     return {
       msg: 'Welcome to Your Vue.js App',
-      headline: 'This is the headline',
+      headline: '西南林业大学保研评分系统',
       activeIndex: '1',
     }
   },

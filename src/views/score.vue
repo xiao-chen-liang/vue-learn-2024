@@ -4,18 +4,18 @@
       <h3>Detail Data</h3>
       <el-table :data="detailData" :row-class-name="rowClassName" style="width: 1000px;" height="350px">
         <el-table-column type="index"></el-table-column>
-        <el-table-column prop="course" label="Course"></el-table-column>
-        <el-table-column prop="grade" label="Grade" sortable></el-table-column>
-        <el-table-column prop="point" label="Point" sortable></el-table-column>
-        <el-table-column prop="semester" label="Semester" sortable></el-table-column>
-        <el-table-column prop="type" label="Type" sortable></el-table-column>
-        <el-table-column prop="required" label="Required" sortable>
+        <el-table-column prop="course" label="课程"></el-table-column>
+        <el-table-column prop="grade" label="成绩" sortable></el-table-column>
+        <el-table-column prop="point" label="绩点" sortable></el-table-column>
+        <el-table-column prop="semester" label="学期" sortable></el-table-column>
+        <el-table-column prop="type" label="类型" sortable></el-table-column>
+        <el-table-column prop="required" label="是否包含" sortable>
           <template #default="{ row }">
             {{ getRequiredText(row.required) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="Toggle Required" align="center">
+        <el-table-column label="更改包含" align="center">
           <template #default="{ row }">
             <el-switch
               v-model="row.required"
@@ -31,40 +31,40 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-button @click="detailData = null" type="primary" style="margin-top: 20px">Close</el-button>
+      <el-button @click="detailData = null" type="primary" style="margin-top: 20px">关闭</el-button>
     </div>
     <el-row>
 
-      <el-col :span="8">
+      <el-col :span="4">
         <div>
           <el-cascader :options="options" clearable @change="handleCascaderChange" v-model="selectedValue"
-                       size="large"></el-cascader>
+                       size="large" ></el-cascader>
         </div>
       </el-col>
-      <el-col :span="16">
+      <el-col :span="20">
         <div class="headline">
           <h2>{{ selectedValueHeadline }}</h2>
         </div>
         <div class="grid-content bg-purple" id="report_table">
           <el-table :data="reportData" v-loading="reportData === null" stripe class="centered-table">
-            <el-table-column label="Action" align="center">
+            <el-table-column label="" align="center">
               <template #default="{ row }">
-                <el-button type="text" @click="showDetail(row)">Detail</el-button>
+                <el-button type="text" @click="showDetail(row)">详情</el-button>
               </template>
             </el-table-column>
-            <el-table-column prop="name" label="Name" align="center"></el-table-column>
-            <el-table-column prop="sn" label="SN" align="center"></el-table-column>
+            <el-table-column prop="name" label="姓名" align="center"></el-table-column>
+            <el-table-column prop="sn" label="学号" align="center"></el-table-column>
             <el-table-column prop="score" :label="scoreLabel" align="center" sortable></el-table-column>
             <el-table-column prop="comprehensive" :label="comprehensiveLabel" align="center" sortable></el-table-column>
-            <el-table-column prop="sum" label="Sum" align="center" sortable></el-table-column>
-            <el-table-column label="Change Comprehensive" align="center">
+            <el-table-column prop="sum" label="总成绩" align="center" sortable></el-table-column>
+            <el-table-column label="更改综合素质成绩" align="center" width="150px">
               <template #default="{ row }">
-                <el-input v-model="row.inputValue" class="input_box" style="width: 100px"></el-input>
+                <el-input-number v-model="row.inputValue" class="input_box" style="width: 120px"c></el-input-number>
                 <el-button type="primary" :disabled="row.inputValue < 0 || row.inputValue > 100"
-                           @click="submitInput(row)">Submit
+                           @click="submitInput(row)">提交
                 </el-button>
                 <el-alert v-if="row.inputValue < 0 || row.inputValue > 100" type="warning" :closable="false" show-icon
-                          title="Input value must be between 0 and 100"></el-alert>
+                          title="综合素质成绩需为0到100"></el-alert>
               </template>
             </el-table-column>
           </el-table>
@@ -107,16 +107,16 @@ export default {
   computed: {
     selectedValueHeadline() {
       if (!this.selectedValue || this.selectedValue.length === 0) {
-        return 'No selection';
+        return '未选择';
       } else {
-        return 'Selected value: ' + this.selectedValue.join(' > ');
+        return this.selectedValue.join(' > ');
       }
     },
     scoreLabel() {
-      return 'score ' + this.rule.score * 100 + '%';
+      return '智育成绩 ' + this.rule.score * 100 + '%';
     },
     comprehensiveLabel() {
-      return 'comprehensive ' + this.rule.comprehensive * 100 + '%';
+      return '综合素质 ' + this.rule.comprehensive * 100 + '%';
     }
   },
   async created() {
@@ -145,9 +145,9 @@ export default {
 
     // Check the response status to determine success or failure
     if (response.status === 200) {
-      this.$message.success(`Required status updated successfully for ${row.course}`);
+      this.$message.success(`${row.course}：包含状态更改成功`);
     } else {
-      this.$message.error(`Failed to update required status for ${row.course}`);
+      this.$message.error(`${row.course}：包含状态更改失败`);
     }
   } catch (error) {
     console.error('Error toggling required:', error);
@@ -224,7 +224,7 @@ export default {
       try {
         row.comprehensive = row.inputValue;
         if (row.comprehensive !== this.originalComprehensive) {
-          this.$message.success(`${row.name}'s comprehensive changed to ${row.inputValue}`);
+          this.$message.success(`${row.name}的综合素质成绩更改为${row.inputValue}`);
         }
         const updateUrl = `http://localhost:5000/update_comprehensive`;
         const response = await axios.put(updateUrl, row);
