@@ -17,7 +17,7 @@
             <el-col :span="10" class="input-column">
               <el-form-item :label="item.major" prop="allocationItems">
                 <!-- Use el-input-number with min value of 0 and step of 1 -->
-                <el-input-number v-model="item.quantity" controls-position="right" :min="0" :step="1"
+                <el-input-number v-model="item.quantity" :min="0" :step="1"
                 ></el-input-number>
               </el-form-item>
             </el-col>
@@ -32,7 +32,7 @@
             <el-col :span="10" class="input-column">
               <el-form-item :label="getSelectedCollegeLabel()" prop="totality">
                 <!-- Use el-input-number for totality input -->
-                <el-input-number v-model="totality" controls-position="right" :min="0" :step="1"
+                <el-input-number v-model="totality" :min="0" :step="1"
                 ></el-input-number>
               </el-form-item>
             </el-col>
@@ -53,7 +53,7 @@
         </el-form>
 
         <!-- Display error message with bottom margin -->
-        <el-row v-if="!validateSumOfQuantities()">
+        <el-row v-if="allocation && totality && !validateSumOfQuantities()">
           <el-col :span="24">
             <el-alert
                 title="invalid input"
@@ -67,14 +67,15 @@
         </el-row>
 
         <div class="grid-content bg-purple" id="report_table">
-          <el-table :data="reportData" v-loading="reportData === null" stripe class="centered-table">
-            <el-table-column prop="major" label="Major" align="center"></el-table-column>
-            <el-table-column prop="name" label="Name" align="center"></el-table-column>
-            <el-table-column prop="sn" label="SN" align="center"></el-table-column>
-            <el-table-column prop="score" :label="scoreLabel" align="center"></el-table-column>
-            <el-table-column prop="comprehensive" :label="comprehensiveLabel" align="center"></el-table-column>
-            <el-table-column prop="sum" label="Sum" align="center"></el-table-column>
-          </el-table>
+
+          <el-table :data="reportData" v-loading="reportData === null" class="centered-table" :span-method="objectSpanMethod" :row-class-name="rowClassName">
+  <el-table-column prop="major" label="Major" align="center"></el-table-column>
+  <el-table-column prop="name" label="Name" align="center"></el-table-column>
+  <el-table-column prop="sn" label="SN" align="center"></el-table-column>
+  <el-table-column prop="score" :label="scoreLabel" align="center"></el-table-column>
+  <el-table-column prop="comprehensive" :label="comprehensiveLabel" align="center"></el-table-column>
+  <el-table-column prop="sum" label="Sum" align="center"></el-table-column>
+</el-table>
 
         </div>
 
@@ -154,6 +155,34 @@ export default {
   },
 
   methods: {
+    rowClassName({ row }) {
+    // If the row is null or undefined, return immediately
+    if (row == null) {
+      return;
+    }
+
+    // If the row only has the 'major' key
+    if (Object.keys(row).length === 1 && 'major' in row) {
+      return 'blue-row'; // Return the class name
+    }
+  },
+
+   objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+  // If the row is null or undefined, return immediately
+  if (row == null) {
+    return;
+  }
+
+  // If the row only has the 'major' key
+  if (Object.keys(row).length === 1 && 'major' in row) {
+    if (columnIndex === 0) {
+      return [1, 6]; // Span 6 columns
+    } else {
+      return [0, 0]; // Hide other cells in the row
+    }
+  }
+},
+
     async submitAllocationItem(index) {
       try {
         if (!this.validateSumOfQuantities()) {
@@ -229,14 +258,16 @@ export default {
         method: 'POST',
         responseType: 'blob', // Important
         data: {
-          reportData: this.reportData
+          reportData: this.reportData,
+          rule: this.rule,
+          allocation: this.allocation
         }
       })
           .then((response) => {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'output.xlsx'); //or any other extension
+            link.setAttribute('download', this.rule.college + "_" + this.rule.grade.toString() + "_ranking.xlsx"); //or any other extension
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -302,6 +333,7 @@ export default {
         });
 
         for (let item of this.allocation) {
+          tempData.unshift(empty_row);
           let count = item.quantity;
           allocation_already += count;
           for (let i = this.reportData.length - 1; i >= 0 && count > 0; i--) {
@@ -313,11 +345,12 @@ export default {
             }
           }
           tempData.unshift({"major": this.rule.grade + item.major + "  分配名额：" + item.quantity + "  合格人数：" + temp_count});
-          tempData.unshift(empty_row);
+
           temp_count = 0;
         }
 
         let count = this.rule.totality - qualified;
+        tempData.unshift(empty_row);
         for (let i = this.reportData.length - 1; i >= 0 && count > 0; i--) {
           tempData.unshift(this.reportData.splice(i, 1)[0]); // Move unmatched item to tempData
           count--;
@@ -325,17 +358,34 @@ export default {
           temp_count++;
         }
         tempData.unshift({"major": this.rule.grade + this.rule.college+ " 总名额：" + this.rule.totality + "  剩余名额：" + (this.rule.totality - allocation_already) + "  合格人数：" + temp_count});
-        tempData.unshift(empty_row);
-        temp_count = 0;
 
+        temp_count = 0;
+        tempData.unshift(empty_row);
         for (let i = this.reportData.length - 1; i >= 0; i--) {
           tempData.unshift(this.reportData.splice(i, 1)[0]);
           temp_count++;
         }
         tempData.unshift({"major": this.rule.grade + this.rule.college + " 不合格：" + temp_count});
-        tempData.unshift(empty_row);
+
 
         this.reportData = tempData.reverse(); // Reverse the order of tempData
+
+        let j = 0;
+        for (let i = 0; i < this.reportData.length; i++) {
+          if (this.reportData[i] == null){
+            for (j = i + 1; j < this.reportData.length; j++){
+              if (!('sn' in this.reportData[j])){
+                let t = this.reportData[i];
+                this.reportData[i] = this.reportData[j];
+                this.reportData[j] = t;
+                break;
+              }
+            }
+            i = j;
+          }
+        }
+
+        console.log(this.reportData)
       }
     },
 
@@ -349,17 +399,57 @@ export default {
     },
 
     validateSumOfQuantities() {
-      if (!this.allocation || this.allocation.length === 0 || !this.totality || this.totality < 0) {
+
+      console.log("this.allocation", this.allocation, "this.totality", this.totality);
+      if (!this.allocation || this.allocation.length === 0 || this.totality === null) {
+        console.log("1")
         return false;
       }
-      const sum = this.allocation.reduce((acc, item) => acc + (parseInt(item.quantity) || 0), 0);
-      return sum <= parseInt(this.totality);
+      for (let item of this.allocation) {
+        if (item.quantity === null){
+          console.log("2")
+          return false;
+        }
+      }
+      if(this.totality < 0){
+        console.log("3")
+        return false;
+      }
+      for (let item of this.allocation) {
+        if (item.quantity < 0){
+          console.log("4")
+          return false;
+        }
+      }
+      let sum = 0;
+      for (let item of this.allocation) {
+        sum += item.quantity;
+      }
+      if (sum > this.totality) {
+        console.log("5")
+        return false;
+      }
+      if (!Number.isInteger(this.totality)){
+        console.log("6")
+        return false;
+      }
+      for (let item of this.allocation) {
+        if (!Number.isInteger(item.quantity)){
+          console.log("7")
+          return false;
+        }
+      }
+      return true;
     }
   }
 };
 </script>
 
 <style scoped>
+  ::v-deep .blue-row {
+    background-color: #5ea8f6 !important;
+  }
+
 .el-input-number {
   width: 200px;
 }
@@ -398,4 +488,6 @@ export default {
 .el-button {
   margin-bottom: 10px;
 }
+
+
 </style>

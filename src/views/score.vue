@@ -1,6 +1,40 @@
 <template>
   <div>
+          <div id="detailTableDiv" v-if="detailData">
+      <h3>Detail Data</h3>
+      <el-table :data="detailData" :row-class-name="rowClassName" style="width: 1000px;" height="350px">
+        <el-table-column type="index"></el-table-column>
+        <el-table-column prop="course" label="Course"></el-table-column>
+        <el-table-column prop="grade" label="Grade" sortable></el-table-column>
+        <el-table-column prop="point" label="Point" sortable></el-table-column>
+        <el-table-column prop="semester" label="Semester" sortable></el-table-column>
+        <el-table-column prop="type" label="Type" sortable></el-table-column>
+        <el-table-column prop="required" label="Required" sortable>
+          <template #default="{ row }">
+            {{ getRequiredText(row.required) }}
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Toggle Required" align="center">
+          <template #default="{ row }">
+            <el-switch
+              v-model="row.required"
+              :active-value="1"
+              :inactive-value="0"
+              active-text="包含"
+              inactive-text="不包含"
+              active-color="#13ce66"
+              inactive-color="#ff4949"
+              :disabled="row.required === null"
+              @change="handleRequiredToggle(row)"
+            ></el-switch>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-button @click="detailData = null" type="primary" style="margin-top: 20px">Close</el-button>
+    </div>
     <el-row>
+
       <el-col :span="8">
         <div>
           <el-cascader :options="options" clearable @change="handleCascaderChange" v-model="selectedValue"
@@ -12,67 +46,29 @@
           <h2>{{ selectedValueHeadline }}</h2>
         </div>
         <div class="grid-content bg-purple" id="report_table">
-          <el-table
-              :data="reportData"
-              v-loading="reportData === null"
-              stripe
-              class="centered-table"
-          >
-            <el-table-column
-                prop="name"
-                label="Name"
-                align="center"
-            ></el-table-column>
-            <el-table-column
-                prop="sn"
-                label="SN"
-                align="center"
-            ></el-table-column>
-
-            <el-table-column
-                prop="score"
-                :label="scoreLabel"
-                align="center"
-                sortable
-            ></el-table-column>
-            <el-table-column
-                prop="comprehensive"
-                :label="comprehensiveLabel"
-                align="center"
-                sortable
-            ></el-table-column>
-            <el-table-column
-                prop="sum"
-                label="Sum"
-                align="center"
-                sortable
-            ></el-table-column>
-            <!--            add a column-->
-            <el-table-column
-                label="Change Comprehensive"
-                align="center"
-            >
-              <!--              an input box combined with the value of inputValue-->
+          <el-table :data="reportData" v-loading="reportData === null" stripe class="centered-table">
+            <el-table-column label="Action" align="center">
+              <template #default="{ row }">
+                <el-button type="text" @click="showDetail(row)">Detail</el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="name" label="Name" align="center"></el-table-column>
+            <el-table-column prop="sn" label="SN" align="center"></el-table-column>
+            <el-table-column prop="score" :label="scoreLabel" align="center" sortable></el-table-column>
+            <el-table-column prop="comprehensive" :label="comprehensiveLabel" align="center" sortable></el-table-column>
+            <el-table-column prop="sum" label="Sum" align="center" sortable></el-table-column>
+            <el-table-column label="Change Comprehensive" align="center">
               <template #default="{ row }">
                 <el-input v-model="row.inputValue" class="input_box" style="width: 100px"></el-input>
                 <el-button type="primary" :disabled="row.inputValue < 0 || row.inputValue > 100"
                            @click="submitInput(row)">Submit
                 </el-button>
-                <el-alert
-                    v-if="row.inputValue < 0 || row.inputValue > 100"
-                    type="warning"
-                    :closable="false"
-                    show-icon
-                    title="Input value must be between 0 and 100"
-                ></el-alert>
+                <el-alert v-if="row.inputValue < 0 || row.inputValue > 100" type="warning" :closable="false" show-icon
+                          title="Input value must be between 0 and 100"></el-alert>
               </template>
-
             </el-table-column>
-
           </el-table>
         </div>
-
-
       </el-col>
     </el-row>
   </div>
@@ -91,7 +87,7 @@ export default {
     return {
       options: null,
       selectedValue: [],
-      reportData: [], // Initialize reportData as an empty array
+      reportData: [],
       rule: {
         college: '',
         comprehensive: 0.15,
@@ -104,7 +100,8 @@ export default {
         skill: 1,
         specialized: 1,
         theory: 1
-      }, // Define the rule variable
+      },
+      detailData: null
     };
   },
   computed: {
@@ -115,37 +112,70 @@ export default {
         return 'Selected value: ' + this.selectedValue.join(' > ');
       }
     },
-    // To dynamically change the label of the "Score" column in your el-table component based on the value of rule[score],use a computed property for the label text. Here's how you can achieve this in your Vue.js component
     scoreLabel() {
-      return 'score ' + this.rule.score * 100 + '%'
+      return 'score ' + this.rule.score * 100 + '%';
     },
-    // To dynamically change the label of the "Comprehensive" column in your el-table component based on the value of rule[comprehensive], use a computed property for the label text. Here's how you can achieve this in your Vue.js component
     comprehensiveLabel() {
-      return 'comprehensive ' + this.rule.comprehensive * 100 + '%'
+      return 'comprehensive ' + this.rule.comprehensive * 100 + '%';
     }
   },
   async created() {
-    await this.getOptions(); // Fetch options for the cascader
+    await this.getOptions();
     if (this.options && this.options.length > 0) {
-      // Set default selected values for cascader
       const defaultGrade = this.options[0].value;
       const defaultCollege = this.options[0].children[0].value;
-      const defaultMajor = this.options[0].children[0].children[0].value; // Assuming major is the third level
-
+      const defaultMajor = this.options[0].children[0].children[0].value;
       this.selectedValue = [defaultGrade, defaultCollege, defaultMajor];
-
-      // Fetch data based on the default selected value
-      await this.fetchReportData(defaultGrade, defaultCollege, defaultMajor); // Await the data fetch
-
-      // Destructure the selectedValues array into grade, college, and major
+      await this.fetchReportData(defaultGrade, defaultCollege, defaultMajor);
       const [grade, college, major] = this.selectedValue;
-
       const url = `http://localhost:5000/get_rule_data/${grade}/${college}`;
       const response = await axios.get(url);
       this.rule = response.data;
     }
   },
   methods: {
+    async handleRequiredToggle(row) {
+  try {
+    // Toggle the required property between 0 and 1
+    // row.required = row.required === 1 ? 0 : 1;
+
+    // Make an API call to update the 'required' property
+    const updateUrl = `http://localhost:5000/update_required`;
+    const response = await axios.post(updateUrl, { id: row.id, required: row.required });
+
+    // Check the response status to determine success or failure
+    if (response.status === 200) {
+      this.$message.success(`Required status updated successfully for ${row.course}`);
+    } else {
+      this.$message.error(`Failed to update required status for ${row.course}`);
+    }
+  } catch (error) {
+    console.error('Error toggling required:', error);
+    this.$message.error('An error occurred while updating required status');
+  }
+},
+
+    rowClassName({row}) {
+      // If the row is null or undefined, return immediately
+      if (row == null) {
+        return;
+      }
+
+      // If the row only has the 'major' key
+      if (row.required == 0) {
+        return 'blue-row'; // Return the class name
+      }
+    },
+    async showDetail(row) {
+      try {
+        const sn = row.sn;
+        const response = await axios.get(`http://localhost:5000/get_detail_messages/${sn}`);
+        this.detailData = response.data;
+
+      } catch (error) {
+        console.error('Error fetching detail data:', error);
+      }
+    },
     async getOptions() {
       try {
         const response = await axios.get('http://127.0.0.1:5000/get_options_of_grades_colleges_majors');
@@ -155,11 +185,8 @@ export default {
       }
     },
     async handleCascaderChange(selectedValues) {
-      // Check if selectedValues is empty
       if (!selectedValues || selectedValues.length === 0) {
-        // If selectedValues is empty, set reportData to an empty array
         this.reportData = [];
-
         this.rule = {
           college: '',
           comprehensive: 0.15,
@@ -173,71 +200,69 @@ export default {
           specialized: 1,
           theory: 1
         };
-
-        return; // Exit early
+        return;
       }
-
-      // Destructure the selectedValues array into grade, college, and major
       const [grade, college, major] = selectedValues;
-
       const url = `http://localhost:5000/get_rule_data/${grade}/${college}`;
       const response = await axios.get(url);
       this.rule = response.data;
-
-      // Fetch data based on the selected values from cascader
-      await this.fetchReportData(grade, college, major); // Await the data fetch
+      await this.fetchReportData(grade, college, major);
     },
-
     async fetchReportData(grade, college, major) {
       try {
         const url = `http://localhost:5000/get_rule_data_by_grade_college_major/${grade}/${college}/${major}`;
         const response = await axios.get(url);
-        this.reportData = response.data || []; // Assign fetched data to reportData variable (default to empty array if null)
-
-        // Add inputValue property to each item in reportData
+        this.reportData = response.data || [];
         this.reportData.forEach(item => {
-          item.inputValue = item.comprehensive; // Directly assign inputValue property
+          item.inputValue = item.comprehensive;
         });
-
-        console.log('Report data:', this.reportData);
-        // Handle the fetched rule data as needed (e.g., update state, display data)
       } catch (error) {
         console.error('Error fetching rule data:', error);
-        // Handle error (e.g., display error message)
       }
     },
-
-
     async submitInput(row) {
       try {
-        // Update the 'comprehensive' field of the row with the inputValue
         row.comprehensive = row.inputValue;
-
-        // Check if the comprehensive value was changed
         if (row.comprehensive !== this.originalComprehensive) {
-          // Display a success message indicating the change
           this.$message.success(`${row.name}'s comprehensive changed to ${row.inputValue}`);
         }
-
-        // Send the updated row data to the backend API
         const updateUrl = `http://localhost:5000/update_comprehensive`;
         const response = await axios.put(updateUrl, row);
-        console.log('Updated comprehensive value:', response.data);
-
-        // Reload reportData after successful update
         await this.fetchReportData(this.selectedValue[0], this.selectedValue[1], this.selectedValue[2]);
-
       } catch (error) {
         console.error('Error updating comprehensive value:', error);
-        // Handle error (e.g., display error message)
       }
     },
+    getRequiredText(required) {
+      return required == true ? '包含' : '不包含';
+    },
+
   }
 };
 </script>
 
 <style scoped>
-/* Your scoped styles here */
+::v-deep .blue-row {
+  background-color: #5ea8f6 !important;
+}
+
+#detailTableDiv {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  padding: 20px;
+  background: #56b3e7;
+  border: 1px solid #ccc;
+  border-radius: 15px;
+  align-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .input_box {
   width: 200px;
 }
@@ -249,8 +274,7 @@ export default {
 }
 
 .centered-table {
-  margin: 0 auto; /* Center the table horizontally */
-  max-width: 100%; /* Set the maximum width of the table */
+  margin: 0 auto;
+  max-width: 100%;
 }
-
 </style>

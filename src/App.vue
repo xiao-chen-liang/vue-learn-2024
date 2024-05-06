@@ -39,18 +39,6 @@
             >
               排名
             </el-menu-item>
-            <el-menu-item
-                index="5"
-                style="font-size: 20px; display: flex; justify-content: center; align-items: center;"
-            >
-              Orders
-            </el-menu-item>
-            <el-menu-item
-                index="6"
-                style="font-size: 20px; display: flex; justify-content: center; align-items: center;"
-            >
-              Orders
-            </el-menu-item>
           </el-menu>
         </el-aside>
         <el-main>
