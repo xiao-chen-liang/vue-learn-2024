@@ -77,6 +77,7 @@
 <script>
 import {ElTable, ElTableColumn} from 'element-plus';
 import axios from 'axios';
+import config from '@/config/config';
 
 export default {
   components: {
@@ -128,8 +129,8 @@ export default {
       this.selectedValue = [defaultGrade, defaultCollege, defaultMajor];
       await this.fetchReportData(defaultGrade, defaultCollege, defaultMajor);
       const [grade, college, major] = this.selectedValue;
-      const url = `http://localhost:5000/get_rule_data/${grade}/${college}`;
-      const response = await axios.get(url);
+      const url_getRuleData = `${config.API_BASE_URL}${config.API_PATHS.getRuleData}/${grade}/${college}`;
+      const response = await axios.get(url_getRuleData);
       this.rule = response.data;
     }
   },
@@ -140,8 +141,8 @@ export default {
     // row.required = row.required === 1 ? 0 : 1;
 
     // Make an API call to update the 'required' property
-    const updateUrl = `http://localhost:5000/update_required`;
-    const response = await axios.post(updateUrl, { id: row.id, required: row.required });
+    const url_updateRequired = `${config.API_BASE_URL}${config.API_PATHS.updateRequired}`;
+    const response = await axios.post(url_updateRequired, { id: row.id, required: row.required });
 
     // Check the response status to determine success or failure
     if (response.status === 200) {
@@ -169,7 +170,8 @@ export default {
     async showDetail(row) {
       try {
         const sn = row.sn;
-        const response = await axios.get(`http://localhost:5000/get_detail_messages/${sn}`);
+        const url_getDetailData = `${config.API_BASE_URL}${config.API_PATHS.getDetailMessages}/${sn}`;
+        const response = await axios.get(url_getDetailData);
         this.detailData = response.data;
 
       } catch (error) {
@@ -178,7 +180,8 @@ export default {
     },
     async getOptions() {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/get_options_of_grades_colleges_majors');
+        const url_getOptions = `${config.API_BASE_URL}${config.API_PATHS.getOptionsOfGradesCollegesMajors}`;
+        const response = await axios.get(url_getOptions);
         this.options = response.data;
       } catch (error) {
         console.error('Error fetching options:', error);
@@ -203,15 +206,15 @@ export default {
         return;
       }
       const [grade, college, major] = selectedValues;
-      const url = `http://localhost:5000/get_rule_data/${grade}/${college}`;
-      const response = await axios.get(url);
+      const url_getRuleData = `${config.API_BASE_URL}${config.API_PATHS.getRuleData}/${grade}/${college}`;
+      const response = await axios.get(url_getRuleData);
       this.rule = response.data;
       await this.fetchReportData(grade, college, major);
     },
     async fetchReportData(grade, college, major) {
       try {
-        const url = `http://localhost:5000/get_rule_data_by_grade_college_major/${grade}/${college}/${major}`;
-        const response = await axios.get(url);
+        const url_getReportData = `${config.API_BASE_URL}${config.API_PATHS.getRuleDataByGradeCollegeMajor}/${grade}/${college}/${major}`;
+        const response = await axios.get(url_getReportData);
         this.reportData = response.data || [];
         this.reportData.forEach(item => {
           item.inputValue = item.comprehensive;
@@ -226,8 +229,8 @@ export default {
         if (row.comprehensive !== this.originalComprehensive) {
           this.$message.success(`${row.name}的综合素质成绩更改为${row.inputValue}`);
         }
-        const updateUrl = `http://localhost:5000/update_comprehensive`;
-        const response = await axios.put(updateUrl, row);
+        const url_updateComprehensive = `${config.API_BASE_URL}${config.API_PATHS.updateComprehensive}`;
+        const response = await axios.put(url_updateComprehensive, row);
         await this.fetchReportData(this.selectedValue[0], this.selectedValue[1], this.selectedValue[2]);
       } catch (error) {
         console.error('Error updating comprehensive value:', error);

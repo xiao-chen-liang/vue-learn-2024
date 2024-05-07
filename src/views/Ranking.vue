@@ -96,8 +96,7 @@
 <script>
 import {ElTable, ElTableColumn, ElAlert, ElInputNumber} from 'element-plus';
 import axios from 'axios';
-import XLSX from 'xlsx';
-
+import config from '@/config/config'
 export default {
   components: {
     ElTable,
@@ -108,7 +107,7 @@ export default {
   data() {
     return {
       options: null,
-      selectedValue: [],
+      selectedValue: null,
       reportData: null,
       rule: null,
       allocation: null,
@@ -200,13 +199,9 @@ export default {
 
     async submitForm() {
       try {
-        if (!this.validateSumOfQuantities()) {
-          console.error('Sum of quantities exceeds totality.');
-          return;
-        }
-
         this.rule.totality = this.totality;
-        const response = await axios.post('http://127.0.0.1:5000/update_rule_data', this.rule);
+        const url_getRuleData = `${config.API_BASE_URL}${config.API_PATHS.updateRuleData}`;
+        const response = await axios.post(url_getRuleData, this.rule);
         console.log(response.data);
 
       } catch (error) {
@@ -224,9 +219,10 @@ export default {
         const [grade, college] = this.selectedValue;
 
         try {
+          const url_getReportData = `${config.API_BASE_URL}${config.API_PATHS.getReportDataByGradeCollege}/${grade}/${college}`;
           const [reportResponse] = await Promise.all([
 
-            axios.get(`http://localhost:5000/get_report_data_by_grade_college/${grade}/${college}`)
+            axios.get(url_getReportData)
           ]);
 
           this.reportData = reportResponse.data || null;
@@ -236,6 +232,7 @@ export default {
           }
         } catch (error) {
           console.error('Error fetching data:', error);
+          return ;
         }
 
         this.$message({
@@ -252,8 +249,9 @@ export default {
     },
 
     downloadTableAsExcel() {
+      const url_download = `${config.API_BASE_URL}${config.API_PATHS.download}`;
       axios({
-        url: 'http://localhost:5000/download',
+        url: url_download,
         method: 'POST',
         responseType: 'blob', // Important
         data: {
@@ -279,10 +277,13 @@ export default {
 
     async getOptions() {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/get_grades_and_colleges');
+        const url_getGradesAndColleges = `${config.API_BASE_URL}${config.API_PATHS.getGradesAndColleges}`
+        const response = await axios.get(url_getGradesAndColleges);
+        console.log(response.data)
         this.options = response.data;
       } catch (error) {
         console.error('Error fetching options:', error);
+
       }
     },
 
@@ -296,10 +297,14 @@ export default {
 
       const [grade, college] = selectedValues;
       try {
+        const url_getRuleData = `${config.API_BASE_URL}${config.API_PATHS.getRuleData}/${grade}/${college}`;
+        const url_getReportData = `${config.API_BASE_URL}${config.API_PATHS.getReportDataByGradeCollege}/${grade}/${college}`;
+        const url_getAllocationData = `${config.API_BASE_URL}${config.API_PATHS.getAllocationData}/${grade}/${college}`;
+
         const [ruleResponse, reportResponse, allocationResponse] = await Promise.all([
-          axios.get(`http://localhost:5000/get_rule_data/${grade}/${college}`),
-          axios.get(`http://localhost:5000/get_report_data_by_grade_college/${grade}/${college}`),
-          axios.get(`http://localhost:5000/get_allocation_data/${grade}/${college}`)
+          axios.get(url_getRuleData),
+          axios.get(url_getReportData),
+          axios.get(url_getAllocationData)
         ]);
 
         this.rule = ruleResponse.data || null;

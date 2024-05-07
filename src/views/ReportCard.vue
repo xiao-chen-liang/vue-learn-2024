@@ -47,6 +47,7 @@
 
 <script>
 import axios from 'axios';
+import config from "@/config/config";
 
 export default {
   data() {
@@ -113,8 +114,10 @@ export default {
           const formData = new FormData();
           formData.append('file', file);
 
+          const upload_url = `${config.API_BASE_URL}${config.API_PATHS.upload}`
+
           // Use axios to send the file to Flask backend
-          const response = await axios.post('http://localhost:5000/upload', formData, {
+          const response = await axios.post(upload_url, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }

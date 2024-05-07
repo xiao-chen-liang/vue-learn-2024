@@ -72,6 +72,7 @@
 
 <script>
 import axios from 'axios';
+import config from '@/config/config';
 
 export default {
   data() {
@@ -119,7 +120,8 @@ export default {
     },
     async getOptions() {
       try {
-        const response = await axios.get('http://localhost:5000/get_grades_and_colleges');
+        const url_getGradesAndColleges = `${config.API_BASE_URL}${config.API_PATHS.getGradesAndColleges}`
+        const response = await axios.get(url_getGradesAndColleges);
         this.options = response.data;
       } catch (error) {
         console.error('Error:', error);
@@ -145,8 +147,8 @@ export default {
       } else {
         const [grade, college] = selectedValues;
         try {
-          const url = `http://localhost:5000/get_rule_data/${grade}/${college}`;
-          const response = await axios.get(url);
+          const url_getRuleData = `${config.API_BASE_URL}${config.API_PATHS.getRuleData}/${grade}/${college}`;
+          const response = await axios.get(url_getRuleData);
           this.rule = response.data;
           this.originalRule = { ...this.rule }; // Save original values
           this.selectedValueHeadline = 'Selected value: ' + selectedValues.join(' > ');
@@ -163,7 +165,8 @@ export default {
           const comprehensiveNumber = parseFloat(this.rule.comprehensive);
           if (!isNaN(scoreNumber) && !isNaN(comprehensiveNumber)) {
             if (scoreNumber + comprehensiveNumber === 1) {
-              axios.post('http://localhost:5000/update_rule_data', this.rule)
+              const url_updateRuleData = `${config.API_BASE_URL}${config.API_PATHS.updateRuleData}`;
+              axios.post(url_updateRuleData, this.rule)
                 .then(response => {
                   console.log('Server response:', response.data);
                   this.$message.success("提交成功");
@@ -192,7 +195,7 @@ export default {
   },
   created() {
     this.getOptions().then(() => {
-      if (this.options.length > 0) {
+      if (this.options && this.options.length > 0) {
         const defaultGrade = this.options[0].value;
         const defaultCollege = this.options[0].children[0].value;
         this.selectedValue = [defaultGrade, defaultCollege];
