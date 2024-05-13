@@ -1,7 +1,7 @@
 <template>
   <div>
-          <div id="detailTableDiv" v-if="detailData">
-      <h3>Detail Data</h3>
+    <div id="detailTableDiv" v-if="detailData">
+      <h3>成绩详情表</h3>
       <el-table :data="detailData" :row-class-name="rowClassName" style="width: 1000px;" height="350px">
         <el-table-column type="index"></el-table-column>
         <el-table-column prop="course" label="课程"></el-table-column>
@@ -18,27 +18,27 @@
         <el-table-column label="更改包含" align="center">
           <template #default="{ row }">
             <el-switch
-              v-model="row.required"
-              :active-value="1"
-              :inactive-value="0"
-              active-text="包含"
-              inactive-text="不包含"
-              active-color="#13ce66"
-              inactive-color="#ff4949"
-              :disabled="row.required === null"
-              @change="handleRequiredToggle(row)"
+                v-model="row.required"
+                :active-value="1"
+                :inactive-value="0"
+                active-text="包含"
+                inactive-text="不包含"
+                active-color="#13ce66"
+                inactive-color="#ff4949"
+                :disabled="disable_switch(row)"
+                @change="handleRequiredToggle(row)"
             ></el-switch>
           </template>
         </el-table-column>
       </el-table>
-      <el-button @click="detailData = null" type="primary" style="margin-top: 20px">关闭</el-button>
+      <el-button @click="exit_table()" type="primary" style="margin-top: 20px">关闭</el-button>
     </div>
     <el-row>
 
       <el-col :span="4">
         <div>
           <el-cascader :options="options" clearable @change="handleCascaderChange" v-model="selectedValue"
-                       size="large" ></el-cascader>
+                       size="large"></el-cascader>
         </div>
       </el-col>
       <el-col :span="20">
@@ -52,6 +52,7 @@
                 <el-button type="text" @click="showDetail(row)">详情</el-button>
               </template>
             </el-table-column>
+            <el-table-column prop="date" label="成绩单导出日期" align="center" sortable></el-table-column>
             <el-table-column prop="name" label="姓名" align="center"></el-table-column>
             <el-table-column prop="sn" label="学号" align="center"></el-table-column>
             <el-table-column prop="score" :label="scoreLabel" align="center" sortable></el-table-column>
@@ -59,7 +60,7 @@
             <el-table-column prop="sum" label="总成绩" align="center" sortable></el-table-column>
             <el-table-column label="更改综合素质成绩" align="center" width="150px">
               <template #default="{ row }">
-                <el-input-number v-model="row.inputValue" class="input_box" style="width: 120px"c></el-input-number>
+                <el-input-number v-model="row.inputValue" class="input_box" style="width: 120px" c></el-input-number>
                 <el-button type="primary" :disabled="row.inputValue < 0 || row.inputValue > 100"
                            @click="submitInput(row)">提交
                 </el-button>
@@ -89,6 +90,7 @@ export default {
       options: null,
       selectedValue: [],
       reportData: [],
+      sn_opened: null,
       rule: {
         college: '',
         comprehensive: 0.15,
@@ -135,26 +137,54 @@ export default {
     }
   },
   methods: {
+    disable_switch(row){
+      if(row.required == null){
+        return true;
+      }
+      if (row.type === "选修" || row.type === "公修"){
+        return true;
+      }
+
+      if(row.course === "体育(1)" || row.course === "体育(2)" || row.course === "体育(3)" || row.course === "体育(4)"){
+        return true;
+      }
+      if(row.course === "形势与政策(1)" || row.course === "形势与政策(2)" || row.course === "形势与政策(3)" || row.course === "形势与政策(4)"){
+        return true;
+      }
+      if(row.course === "形势与政策(5)" || row.course === "形势与政策(6)" || row.course === "形势与政策(7)" || row.course === "形势与政策(8)"){
+        return true;
+      }
+      if(row.course === "军事技能" || row.course === "军事理论"){
+        return true;
+      }
+
+      return false;
+    },
+    exit_table() {
+      this.detailData = null;
+      this.handleCascaderChange(this.selectedValue)
+    },
     async handleRequiredToggle(row) {
-  try {
-    // Toggle the required property between 0 and 1
-    // row.required = row.required === 1 ? 0 : 1;
+      try {
+        // Toggle the required property between 0 and 1
+        // row.required = row.required === 1 ? 0 : 1;
 
-    // Make an API call to update the 'required' property
-    const url_updateRequired = `${config.API_BASE_URL}${config.API_PATHS.updateRequired}`;
-    const response = await axios.post(url_updateRequired, { id: row.id, required: row.required });
+        // Make an API call to update the 'required' property
+        const url_updateRequired = `${config.API_BASE_URL}${config.API_PATHS.updateRequired}`;
+        const data = {id: row.id, required: row.required, sn: this.sn_opened, grade: this.selectedValue[0], college: this.selectedValue[1]};
+        const response = await axios.post(url_updateRequired, data);
 
-    // Check the response status to determine success or failure
-    if (response.status === 200) {
-      this.$message.success(`${row.course}：包含状态更改成功`);
-    } else {
-      this.$message.error(`${row.course}：包含状态更改失败`);
-    }
-  } catch (error) {
-    console.error('Error toggling required:', error);
-    this.$message.error('An error occurred while updating required status');
-  }
-},
+        // Check the response status to determine success or failure
+        if (response.status === 200) {
+          this.$message.success(`${row.course}：包含状态更改成功`);
+        } else {
+          this.$message.error(`${row.course}：包含状态更改失败`);
+        }
+      } catch (error) {
+        console.error('Error toggling required:', error);
+        this.$message.error('An error occurred while updating required status');
+      }
+    },
 
     rowClassName({row}) {
       // If the row is null or undefined, return immediately
@@ -169,6 +199,7 @@ export default {
     },
     async showDetail(row) {
       try {
+        this.sn_opened = row.sn;
         const sn = row.sn;
         const url_getDetailData = `${config.API_BASE_URL}${config.API_PATHS.getDetailMessages}/${sn}`;
         const response = await axios.get(url_getDetailData);

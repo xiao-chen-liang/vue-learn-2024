@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import NotFoundView from "../views/NotFound.vue";
 import ReportCard from "../views/ReportCard.vue";
 import ScoreItem from "../views/ScoreItems.vue";
-import Score from "../views/score.vue"
-import Ranking from '../views/Ranking.vue' // Import the Ranking view
+import Score from "../views/Score.vue"
+import Ranking from '../views/Ranking.vue'
 
 const routes = [
   {
