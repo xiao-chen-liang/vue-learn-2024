@@ -3,25 +3,25 @@ import ReportCard from "../views/ReportCard.vue";
 import ScoreItem from "../views/ScoreItems.vue";
 import Score from "../views/Score.vue"
 import Ranking from '../views/Ranking.vue'
-// import login from '../views/Login.vue'
-// import register from '../views/Register.vue'
+import login from '../views/Login.vue'
+import register from '../views/Register.vue'
 import dashboard from "@/views/Dashboard.vue";
 
 const routes = [
-    // {
-    //   path: '/',
-    //   redirect: '/login'
-    // },
-    // {
-    //   path: '/login',
-    //   name: 'login',
-    //   component: login
-    // },
-    // {
-    //   path: '/register',
-    //   name: 'register',
-    //   component: register
-    // },
+    {
+      path: '/',
+      redirect: '/login'
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: login
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: register
+    },
     {
         path: '/dashboard',
         name: 'dashboard',

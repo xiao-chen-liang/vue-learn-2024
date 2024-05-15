@@ -1,200 +1,137 @@
 <template>
-<div id="signin" >
-    <Row type="flex" justify="center">
-        <img src="../../assets/login.jpg" alt="" :style="bg">
-        <Col span="5">
-            <Card class="form">
-                <div slot="title">
-                    注册页
-                </div>
-                <Form ref="formInline" :model="formInline" :rules="ruleInline" >
-                    <FormItem prop="nickname">
-                        <Input type="text" v-model="formInline.nickname" placeholder="昵称" size="large" @on-enter="handleSubmit('formInline', formInline)">
-                            <Icon slot="prepend" type="icecream"></Icon>
-                        </Input>
-                    </FormItem>
-                    <FormItem prop="email">
-                        <Input type="text" v-model="formInline.email" placeholder="邮箱" size="large" @on-enter="handleSubmit('formInline', formInline)">
-                            <Icon slot="prepend" type="email"></Icon>
-                        </Input>
-                    </FormItem>
-                    <FormItem prop="password">
-                        <Input type="password" v-model="formInline.password" placeholder="密码"  size="large" @on-enter="handleSubmit('formInline', formInline)">
-                            <Icon slot="prepend" type="locked"></Icon>
-                        </Input>
-                    </FormItem>
-                    <FormItem prop="repassword">
-                        <Input type="password" v-model="formInline.repassword" placeholder="确认密码"  size="large" @on-enter="handleSubmit('formInline', formInline)">
-                            <Icon slot="prepend" type="locked"></Icon>
-                        </Input>
-                    </FormItem>
-                    <FormItem prop="captcha">
-                        <Input type="text" v-model="formInline.mailcode" placeholder="邮箱收到的验证码"  size="large" @on-enter="handleSubmit('formInline', formInline)">
-                            <Icon slot="prepend" type="paper-airplane"></Icon>
-                            <Button slot="append" @click="getMailcode()">发送验证码</Button>
-                        </Input>
-                    </FormItem>
-                    <FormItem>
-                        <Button type="info" @click="handleSubmit('formInline', formInline)" long>注册</Button>
-                    </FormItem>
-                </Form>
-                <div class="ft">
-                    <router-link to="/login">已有账号？马上登录</router-link>
-                </div>
-            </Card>
-        </Col>
-    </Row>
-</div>
+  <div class="register-container">
+    <h1 class="register-header">西南林业大学保研评分系统</h1>
+    <h1 class="register-header">注册新账号</h1>
+    <el-form :model="registerForm" :rules="rules" ref="registerForm" label-width="100px" class="register-form">
+      <el-form-item label="邮箱" prop="email">
+        <el-input v-model="registerForm.email" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input type="password" v-model="registerForm.password" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="确认密码" prop="confirmPassword">
+        <el-input type="password" v-model="registerForm.confirmPassword" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleRegister">注册</el-button>
+        <el-button type="primary" @click="goToLoginPage" class="login-button">返回登录</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
 </template>
 
 <script>
-import { requestSignin, requestMailcode } from '../../api/api'
-import * as coreJS from '../../utils/core'
 export default {
-    name: 'signin',
-    data () {
-    var validateUser = (rule, value, cb) => {
-      var pattern = /^[\w\u4e00-\u9fa5]{3,10}$/g
-      if (value === '') {
-        cb(new Error('请输入昵称'))
-      } else if (!pattern.test(value)) {
-        cb(new Error('请输入3-10个字母/汉字/数字/下划线'))
+  name: 'Register',
+  data() {
+    const validateEmail = (rule, value, callback) => {
+      const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+      if (!value) {
+        callback(new Error('请输入邮箱地址')); // Error message for empty email field
+      } else if (!emailPattern.test(value)) {
+        callback(new Error('请输入有效的邮箱地址')); // Error message for invalid email format
       } else {
-        cb()
+        callback();
       }
-    }
-    var validatePwd = (rule, value, cb) => {
-      var pattern = /^\S{6,20}$/g
-      if (value === '') {
-        cb(new Error('请输入密码'))
-      } else if (!pattern.test(value)) {
-        cb(new Error('请输入6-20个非空白字符'))
+    };
+
+    const validatePassword = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error('请输入密码')); // Error message for empty password field
+      } else if (value.length < 6) {
+        callback(new Error('密码长度不能少于6位')); // Error message for minimum password length
       } else {
-        if (this.formInline.repassword !== '') {
-          this.$refs.formInline.validateField('repassword')
-        }
-        cb()
+        callback();
       }
-    }
-    var validateCheckPwd = (rule, value, cb) => {
-      if (value === '') {
-        cb(new Error('请再次输入密码'))
-      } else if (value !== this.formInline.password) {
-        cb(new Error('两次输入密码不一致!'))
+    };
+
+    const validateConfirmPassword = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error('请再次输入密码')); // Error message for empty confirm password field
+      } else if (value !== this.registerForm.password) {
+        callback(new Error('两次输入的密码不一致')); // Error message for password mismatch
       } else {
-        cb()
+        callback();
       }
-    }
+    };
+
     return {
-      formInline: {
-        nickname: '',
+      registerForm: {
         email: '',
         password: '',
-        repassword: '',
-        mailcode: ''
+        confirmPassword: ''
       },
-      ruleInline: {
-        nickname: [
-        { validator: validateUser, trigger: 'blur' }
-        ],
+      rules: {
         email: [
-        { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-        { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur,change' }
+          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+          { validator: validateEmail, trigger: 'blur' }
         ],
         password: [
-        { validator: validatePwd, trigger: 'blur' }
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { validator: validatePassword, trigger: 'blur' }
         ],
-        repassword: [
-        { validator: validateCheckPwd, trigger: 'blur' }
-        ],
-        mailcode: [
-        { required: true, message: '请输入验证码', trigger: 'blur' }
+        confirmPassword: [
+          { required: true, message: '请再次输入密码', trigger: 'blur' },
+          { validator: validateConfirmPassword, trigger: 'blur' }
         ]
-      },
-      bg: {
-        width: `${window.innerWidth}px`,
-        height: `${window.innerHeight}px`,
-        position: "absolute",
-        }
-    }
-  },
-  computed: {
-    mdpassword: function () {
-        return coreJS.encryptedPassword(this.formInline.password)
-    }
+      }
+    };
   },
   methods: {
-    handleSubmit(name, form) {
-        this.$refs[name].validate((valid) => {
-            if (valid && this.formInline.mailcode) {
-                var signinParams = {
-                    nickname: form.nickname,
-                    email: form.email,
-                    password: this.mdpassword,
-                    mailcode: this.formInline.mailcode
-                }
-                requestSignin(signinParams).then(response => {
-                    if (response.re_code === "0" ) {
-                        this.$Message.success("注册成功")
-                        this.$router.push('/login')
-                    } else {
-                        this.$Message.error(response.msg)
-                    }
-                }).catch(error => {
-                    this.$Message.error(error.status)
-                })
-            } else {
-                this.$Message.error('信息不完整');
-            }
-        })
-    },
-    getMailcode() {
-        if (this.formInline.nickname && this.formInline.email && this.formInline.password && this.formInline.repassword) {
-            var mailcodeParams = {
-                nickname: this.formInline.nickname,
-                email: this.formInline.email
-            }
-            requestMailcode(mailcodeParams).then(response => {
-                if (response.re_code === "0" ) {
-                    this.$Message.success("验证码已发送")
-                } else {
-                    this.$Message.error(response.msg)
-                }
-            }).catch(error => {
-                this.$Message.error(error.status)
-            })
+    handleRegister() {
+      this.$refs.registerForm.validate((valid) => {
+        if (valid) {
+          // Perform the registration action
+          console.log('Registration data:', this.registerForm);
+          // You can call your API here to register the user, for example:
+          // this.$axios.post('/api/register', this.registerForm).then(response => {
+          //   // Handle success
+          // }).catch(error => {
+          //   // Handle error
+          // });
         } else {
-            this.$Message.error('信息不完整');
+          console.log('Validation failed');
+          return false;
         }
+      });
+    },
+    goToLoginPage() {
+      this.$router.push({ name: 'login' }); // Navigate to the login page
     }
-}
-}
+  }
+};
 </script>
 
-<style lang="less" scoped>
-#signin {
-    font-family: Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,SimSun,sans-serif;
-}
-.bg {
-    position: absolute;
-}
-.form {
-    text-align: center;
-    margin-top: 150px;
-    p {
-        font-size: 30px;
-    }
-}
-.ft {
+<style scoped>
+.register-container {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  width: 300px;
+  height: 100vh;
 }
-.ft a {
-  font-size: 14px;
-  text-decoration: none;
-  color: #20A0FF;
+
+.register-header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.register-form {
+  width: 400px;
+  padding: 20px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.login-button {
+  margin-left: 149px; /* Adjusted margin for spacing between buttons */
+}
+
+/* Override Element UI default styles for form items */
+.el-form-item {
+  margin-bottom: 20px; /* Add spacing between form items */
 }
 </style>
