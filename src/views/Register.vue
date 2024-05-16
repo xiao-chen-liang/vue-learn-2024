@@ -21,6 +21,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+import config from "@/config/config";
+
 export default {
   name: 'Register',
   data() {
@@ -40,6 +43,10 @@ export default {
         callback(new Error('请输入密码')); // Error message for empty password field
       } else if (value.length < 6) {
         callback(new Error('密码长度不能少于6位')); // Error message for minimum password length
+      } else if (value.length > 50) {
+        callback(new Error('密码长度不能多于50位')); // Error message for maximum password length
+      } else if (!isStrongPassword(value)) {
+        callback(new Error('密码必须包含至少一个小写字母、一个大写字母、一个数字和一个特殊字符')); // Error message for weak password
       } else {
         callback();
       }
@@ -55,6 +62,21 @@ export default {
       }
     };
 
+    const isStrongPassword = (value) => {
+      // Check if password contains at least one lowercase letter
+      // const hasLowercase = /[a-z]/.test(value);
+      // Check if password contains at least one uppercase letter
+      // const hasUppercase = /[A-Z]/.test(value);
+      // Check if password contains at least one digit
+      const hasDigit = /\d/.test(value);
+      // Check if password contains at least one special character
+      // const hasSpecialChar = /[!@#$%^&*()-_=+[\]{}|;:,.<>?]/.test(value);
+
+      // Password is considered strong if it meets all the criteria
+      // return hasLowercase && hasUppercase && hasDigit && hasSpecialChar;
+      return hasDigit;
+    };
+
     return {
       registerForm: {
         email: '',
@@ -63,40 +85,69 @@ export default {
       },
       rules: {
         email: [
-          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-          { validator: validateEmail, trigger: 'blur' }
+          {required: true, message: '请输入邮箱地址', trigger: 'blur'},
+          {validator: validateEmail, trigger: 'blur'}
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
-          { validator: validatePassword, trigger: 'blur' }
+          {required: true, message: '请输入密码', trigger: 'blur'},
+          {validator: validatePassword, trigger: 'blur'}
         ],
         confirmPassword: [
-          { required: true, message: '请再次输入密码', trigger: 'blur' },
-          { validator: validateConfirmPassword, trigger: 'blur' }
+          {required: true, message: '请再次输入密码', trigger: 'blur'},
+          {validator: validateConfirmPassword, trigger: 'blur'}
         ]
       }
     };
   },
   methods: {
     handleRegister() {
+      // Validate the form using the built-in validation of the form component
       this.$refs.registerForm.validate((valid) => {
         if (valid) {
-          // Perform the registration action
-          console.log('Registration data:', this.registerForm);
-          // You can call your API here to register the user, for example:
-          // this.$axios.post('/api/register', this.registerForm).then(response => {
-          //   // Handle success
-          // }).catch(error => {
-          //   // Handle error
-          // });
+          // Form data is valid, proceed to register the user
+          const formData = {
+            username: this.registerForm.email, // Assuming 'username' in the backend corresponds to 'email'
+            password: this.registerForm.password
+          };
+
+          // Send an HTTP POST request to register the user
+          const registerUrl = `${config.API_BASE_URL}${config.API_PATHS.register}`;
+          console.log(registerUrl);
+          axios.post(registerUrl, formData)
+              .then(response => {
+                if (response.status === 200) {
+                  // Registration successful, handle the response
+                  console.log('User registration successful:', response.data);
+                  this.$message.success('注册成功'); // Display success message
+                  // Redirect the user to the login page or perform other actions as needed
+                  // this.$router.push({ name: 'login' });
+                }
+              })
+              .catch(error => {
+                if (error.response && error.response.status === 400) {
+                  // Registration failed, handle the error
+                  console.error('User registration failed:', error.response.data);
+                  this.$message.error('注册失败: ' + error.response.data.message); // Display error message
+                  this.registerForm = {
+                    email: '',
+                    password: '',
+                    confirmPassword: ''
+                  };
+                } else {
+                  // Handle other errors
+                  console.error('An error occurred:', error);
+                  this.$message.error('发生了一个错误，请稍后重试'); // Display generic error message
+                }
+              });
         } else {
+          // Form data is invalid, do nothing as the validation messages will be displayed
           console.log('Validation failed');
           return false;
         }
       });
     },
     goToLoginPage() {
-      this.$router.push({ name: 'login' }); // Navigate to the login page
+      this.$router.push({name: 'login'}); // Navigate to the login page
     }
   }
 };
@@ -132,6 +183,6 @@ export default {
 
 /* Override Element UI default styles for form items */
 .el-form-item {
-  margin-bottom: 20px; /* Add spacing between form items */
+  margin-bottom: 40px; /* Add spacing between form items */
 }
 </style>

@@ -18,6 +18,10 @@
 </template>
 
 <script>
+// import axios from 'axios';
+import axios from '@/config/axios-config.js';
+import config from "@/config/config";
+
 export default {
   name: 'Login',
   data() {
@@ -39,35 +43,76 @@ export default {
       },
       rules: {
         email: [
-          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-          { validator: validateEmail, trigger: 'blur' }
+          {required: true, message: '请输入邮箱地址', trigger: 'blur'},
+          {validator: validateEmail, trigger: 'blur'}
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: 'blur' }
+          {required: true, message: '请输入密码', trigger: 'blur'}
         ]
       }
     };
   },
   methods: {
     handleLogin() {
+      // Validate the form using the built-in validation of the form component
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
-          // Perform the login action
-          console.log('Login data:', this.loginForm);
-          // You can call your API here, for example:
-          // this.$axios.post('/api/login', this.loginForm).then(response => {
-          //   // Handle success
-          // }).catch(error => {
-          //   // Handle error
-          // });
+          // Form data is valid, proceed to perform the login action
+          const formData = {
+            username: this.loginForm.email,
+            password: this.loginForm.password
+          };
+
+          // Send an HTTP POST request to perform login
+          const loginUrl = `${config.API_BASE_URL}${config.API_PATHS.login}`;
+          axios.post(loginUrl, formData)
+              .then(response => {
+                if (response.status === 200) {
+                  // Login successful, handle the response
+                  console.log('User login successful:', response.data);
+                  this.$message.success('登录成功'); // Display success message
+
+                  // Save the token in localStorage
+                  localStorage.setItem('userToken', response.data.message);
+
+                  // Redirect the user to the dashboard or perform other actions as needed
+                  this.$router.push({name: 'dashboard'});
+                }
+              })
+              .catch(error => {
+                if (error.response && error.response.status === 400) {
+                  // Login failed, handle the error
+                  console.error('User login failed:', error.response.data);
+
+                  this.$message.error('登录失败: ' + error.response.data.message); // Display error message
+
+                  this.loginForm = {
+                    email: '',
+                    password: ''
+                  };
+                } else {
+                  // Handle other errors
+                  console.error('An error occurred:', error);
+                  this.$message.error('发生了一个错误，请稍后重试'); // Display generic error message
+                }
+              });
         } else {
+          // Form data is invalid, do nothing as the validation messages will be displayed
           console.log('Validation failed');
           return false;
         }
       });
     },
     goToRegisterPage() {
-      this.$router.push({ name: 'register' }); // Navigate to the 'register' route
+      const testUrl = `${config.API_BASE_URL}${config.API_PATHS.test_login}`;
+      axios.get(testUrl)
+          .then(response => {
+            console.log('Test successful:', response.data);
+          })
+          .catch(error => {
+            console.error('Test failed:', error);
+          });
+      this.$router.push({name: 'register'}); // Navigate to the 'register' route
     }
   }
 };

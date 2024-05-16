@@ -38,7 +38,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from '@/config/axios-config.js';
+// import axios from 'axios';
 import config from "@/config/config";
 
 export default {
@@ -51,6 +52,15 @@ export default {
     };
   },
   created() {
+    const testUrl = `${config.API_BASE_URL}${config.API_PATHS.test_login}`;
+      axios.get(testUrl)
+          .then(response => {
+            console.log('Test successful:', response.data);
+          })
+          .catch(error => {
+            console.error('Test failed:', error);
+          });
+
     // Retrieve tableData from local storage when the component is created
     const storedTableData = localStorage.getItem('tableData');
     if (storedTableData) {
@@ -184,7 +194,8 @@ export default {
       },
       deep: true
     }
-  }
+  },
+
 };
 </script>
 

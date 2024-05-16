@@ -95,8 +95,9 @@
 
 <script>
 import {ElTable, ElTableColumn, ElAlert, ElInputNumber} from 'element-plus';
-import axios from 'axios';
-import config from '@/config/config'
+import axios from '@/config/axios-config.js';
+// import axios from 'axios';
+import config from "@/config/config";
 export default {
   components: {
     ElTable,
