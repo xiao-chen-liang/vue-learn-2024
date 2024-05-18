@@ -18,7 +18,6 @@
 </template>
 
 <script>
-// import axios from 'axios';
 import axios from '@/config/axios-config.js';
 import config from "@/config/config";
 
@@ -72,10 +71,9 @@ export default {
                   console.log('User login successful:', response.data);
                   this.$message.success('登录成功'); // Display success message
 
-                  // Save the token in localStorage
-                  localStorage.setItem('userToken', response.data.message);
+                  // Store the username in local storage
+                  localStorage.setItem('username', this.loginForm.email);
 
-                  // Redirect the user to the dashboard or perform other actions as needed
                   this.$router.push({name: 'dashboard'});
                 }
               })
@@ -104,14 +102,6 @@ export default {
       });
     },
     goToRegisterPage() {
-      const testUrl = `${config.API_BASE_URL}${config.API_PATHS.test_login}`;
-      axios.get(testUrl)
-          .then(response => {
-            console.log('Test successful:', response.data);
-          })
-          .catch(error => {
-            console.error('Test failed:', error);
-          });
       this.$router.push({name: 'register'}); // Navigate to the 'register' route
     }
   }

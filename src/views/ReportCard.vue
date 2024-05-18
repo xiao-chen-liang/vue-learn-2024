@@ -98,18 +98,18 @@ export default {
       if (!isPDF) {
         this.$message.error(file.name + ': 请上传PDF格式成绩单');
         const mes = {count: this.i++, filename: file.name, message: '请上传PDF格式成绩单', status: "失败"};
-        this.tableData.push(mes);
+        this.tableData.unshift(mes);
         return false;
       }
       if (!isLt500K) {
         this.$message.error(file.name + ': 文件大于500KB');
         const mes = {count: this.i++, filename: file.name, message: '文件大于500KB', status: "失败"};
-        this.tableData.push(mes);
+        this.tableData.unshift(mes);
         return false;
       }
 
       // Add the file to the fileList to display in the UI
-      this.fileList.push(file);
+      this.fileList.unshift(file);
 
       // Prevent automatic upload by returning false
       return false;
@@ -139,7 +139,7 @@ export default {
           // Display success message for the uploaded file
           this.$message.success(`${file.name} ${response.data}`);
           const mes = {count: this.i++, filename: file.name, message: response.data, status: "成功"};
-          this.tableData.push(mes);
+          this.tableData.unshift(mes);
 
           // Remove the uploaded file from fileList
           // this.removeFile(file);
@@ -150,12 +150,12 @@ export default {
             const errorMessage = error.response.data.error;
             this.$message.error(`${file.name}: ${errorMessage}`);
             const mes = {count: this.i++, filename: file.name, message: error.response.data.error, status: "失败"};
-            this.tableData.push(mes);
+            this.tableData.unshift(mes);
           } else {
             // Generic error message for other types of errors
             this.$message.error(`${file.name}: Error uploading file`);
             const mes = {count: this.i++, filename: file.name, message: 'Error uploading file', status: "error"};
-            this.tableData.push(mes);
+            this.tableData.unshift(mes);
           }
 
           // If an error occurs, do not remove the file from fileList

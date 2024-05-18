@@ -18,7 +18,9 @@ const API_PATHS = {
     register: '/register',
     login: '/login',
     modify: '/modify',
-    test_login: '/test_login'
+    test_login: '/test_login',
+    getVerification: '/get_verification',
+    passwordChange: '/passwordChange'
 };
 
 // Export the base URL and paths

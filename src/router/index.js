@@ -5,7 +5,9 @@ import Score from "../views/Score.vue"
 import Ranking from '../views/Ranking.vue'
 import login from '../views/Login.vue'
 import register from '../views/Register.vue'
+import modify from '../views/Modify.vue'
 import dashboard from "@/views/Dashboard.vue";
+
 
 const routes = [
     {
@@ -21,6 +23,11 @@ const routes = [
       path: '/register',
       name: 'register',
       component: register
+    },
+    {
+        path: '/modify',
+        name: 'modify',
+        component: modify
     },
     {
         path: '/dashboard',
